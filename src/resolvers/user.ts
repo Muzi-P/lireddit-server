@@ -2,7 +2,7 @@ import { FORGET_PASSWORD_PREFIX } from './../constants';
 import { validateRegister } from './../utils/validateRegister';
 import { User } from '../entities/User';
 import { MyContext } from 'src/types';
-import { Field, Resolver, Mutation, Arg, Ctx, ObjectType, Query } from 'type-graphql';
+import { Field, Resolver, Mutation, Arg, Ctx, ObjectType, Query, FieldResolver, Root } from 'type-graphql';
 import argon2  from 'argon2';
 import { COOKIE_NAME } from '../constants';
 import { UsernamePasswordInput } from './UsernamePasswordInput';
@@ -29,8 +29,16 @@ export class UserResponse {
   user?: User;
 }
 
-@Resolver()
+@Resolver(User)
 export class UserResolver {
+
+  @FieldResolver(() => String)
+  email (@Root() user: User, @Ctx() { req }: MyContext): string {
+    if (req.session.userId === user.id) {
+      return user.email;
+    }
+    return '';
+  }
 
   @Mutation(() => UserResponse)
   async changePassword(
